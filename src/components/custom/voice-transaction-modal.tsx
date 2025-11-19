@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Loader2, CheckCircle2, XCircle, Edit2 } from 'lucide-react';
+import { Mic, MicOff, Loader2, CheckCircle2, XCircle, Edit2, AlertCircle } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { parseTransactionFromSpeech, type ParsedTransaction } from '@/lib/nlp-parser';
 import { CATEGORY_LABELS, type Transaction, type TransactionType, type TransactionCategory } from '@/lib/types';
@@ -19,10 +19,29 @@ interface VoiceTransactionModalProps {
 }
 
 export function VoiceTransactionModal({ open, onOpenChange, onConfirm }: VoiceTransactionModalProps) {
-  const { isListening, transcript, startListening, stopListening, resetTranscript, isSupported, error } = useSpeechRecognition();
+  const { 
+    isListening, 
+    transcript, 
+    startListening, 
+    stopListening, 
+    resetTranscript, 
+    isSupported, 
+    error,
+    hasPermission,
+    requestPermission 
+  } = useSpeechRecognition();
+  
   const [parsedTransaction, setParsedTransaction] = useState<ParsedTransaction | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTransaction, setEditedTransaction] = useState<ParsedTransaction | null>(null);
+  const [showPermissionRequest, setShowPermissionRequest] = useState(false);
+
+  // Verifica permissão quando o modal abre
+  useEffect(() => {
+    if (open && isSupported && !hasPermission) {
+      setShowPermissionRequest(true);
+    }
+  }, [open, isSupported, hasPermission]);
 
   // Processa o transcript quando ele muda
   useEffect(() => {
@@ -41,12 +60,19 @@ export function VoiceTransactionModal({ open, onOpenChange, onConfirm }: VoiceTr
     }
   }, [transcript, isListening, resetTranscript]);
 
-  const handleStartListening = () => {
+  const handleRequestPermission = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      setShowPermissionRequest(false);
+    }
+  };
+
+  const handleStartListening = async () => {
     resetTranscript();
     setParsedTransaction(null);
     setEditedTransaction(null);
     setIsEditing(false);
-    startListening();
+    await startListening();
   };
 
   const handleConfirm = () => {
@@ -68,6 +94,7 @@ export function VoiceTransactionModal({ open, onOpenChange, onConfirm }: VoiceTr
     setParsedTransaction(null);
     setEditedTransaction(null);
     setIsEditing(false);
+    setShowPermissionRequest(false);
     onOpenChange(false);
   };
 
@@ -117,8 +144,33 @@ export function VoiceTransactionModal({ open, onOpenChange, onConfirm }: VoiceTr
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Solicitação de permissão */}
+          {showPermissionRequest && !hasPermission && (
+            <div className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border border-yellow-700/50 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-6 h-6 text-yellow-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-white mb-2">Permissão Necessária</h3>
+                  <p className="text-sm text-gray-300 mb-4">
+                    Para usar o reconhecimento de voz, precisamos acessar seu microfone. 
+                    Clique no botão abaixo e permita o acesso quando solicitado pelo navegador.
+                  </p>
+                  <Button
+                    onClick={handleRequestPermission}
+                    className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
+                  >
+                    <Mic className="w-4 h-4 mr-2" />
+                    Permitir Acesso ao Microfone
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Área de gravação */}
-          {!parsedTransaction && (
+          {!parsedTransaction && hasPermission && (
             <div className="flex flex-col items-center justify-center py-8 space-y-4">
               <button
                 onClick={isListening ? stopListening : handleStartListening}
@@ -161,8 +213,23 @@ export function VoiceTransactionModal({ open, onOpenChange, onConfirm }: VoiceTr
               )}
 
               {error && (
-                <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 max-w-md">
-                  <p className="text-sm text-red-400">{error}</p>
+                <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 max-w-md">
+                  <div className="flex items-start gap-3">
+                    <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-300 mb-1">Erro de Gravação</p>
+                      <p className="text-sm text-red-400">{error}</p>
+                      {error.includes('Permissão') && (
+                        <Button
+                          onClick={handleRequestPermission}
+                          size="sm"
+                          className="mt-3 bg-red-600 hover:bg-red-700"
+                        >
+                          Solicitar Permissão Novamente
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

@@ -11,6 +11,9 @@ import { ExpensePieChart, MonthlyBarChart } from '@/components/custom/charts';
 import { AccountsSection } from '@/components/custom/accounts-section';
 import { CompaniesSection } from '@/components/custom/companies-section';
 import { GoalsSection } from '@/components/custom/goals-section';
+import { SpreadsheetsSection } from '@/components/custom/spreadsheets-section';
+import { SettingsSection } from '@/components/custom/settings-section';
+import { SuggestionsSection } from '@/components/custom/suggestions-section';
 import {
   TrendingUp,
   TrendingDown,
@@ -212,21 +215,7 @@ export default function DashboardPage() {
           </div>
         );
       case 'planilhas':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Planilhas</h2>
-              <p className="text-gray-400">Organize suas finanças em planilhas</p>
-            </div>
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="py-12 text-center">
-                <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">Funcionalidade em desenvolvimento</p>
-                <p className="text-sm text-gray-500">Em breve você poderá criar e gerenciar planilhas personalizadas</p>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <SpreadsheetsSection transactions={transactions} />;
       case 'relatorios':
         return (
           <div className="space-y-6">
@@ -268,37 +257,9 @@ export default function DashboardPage() {
           </div>
         );
       case 'sugestoes':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Sugestões Inteligentes</h2>
-              <p className="text-gray-400">Dicas personalizadas para suas finanças</p>
-            </div>
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="py-12 text-center">
-                <Lightbulb className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">Funcionalidade em desenvolvimento</p>
-                <p className="text-sm text-gray-500">Em breve você receberá sugestões inteligentes baseadas em IA</p>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <SuggestionsSection transactions={transactions} />;
       case 'config':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Configurações</h2>
-              <p className="text-gray-400">Personalize seu aplicativo</p>
-            </div>
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="py-12 text-center">
-                <Settings className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">Funcionalidade em desenvolvimento</p>
-                <p className="text-sm text-gray-500">Em breve você poderá personalizar suas preferências</p>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return <SettingsSection />;
       default:
         // Dashboard padrão
         return (
@@ -451,26 +412,26 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+    <div className="min-h-screen bg-[#0D0D0D]">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-50 shadow-sm">
+      <header className="bg-[#0D0D0D] border-b border-[#00FF66]/20 sticky top-0 z-50 shadow-lg shadow-[#00FF66]/5">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Wallet className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-[#00FF66] to-emerald-400 rounded-xl flex items-center justify-center shadow-lg shadow-[#00FF66]/30">
+                <Wallet className="w-6 h-6 text-[#0D0D0D]" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">
-                  FinanceApp
+                <h1 className="text-2xl font-bold text-[#FFFFFF] tracking-tight">
+                  Finyx
                 </h1>
-                <p className="text-sm text-gray-400">Gestão Financeira Inteligente</p>
+                <p className="text-sm text-gray-400">Gestão Financeira Premium</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Button
                 onClick={() => setIsVoiceModalOpen(true)}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-lg"
+                className="bg-gradient-to-r from-[#00FF66] to-emerald-500 hover:from-[#00FF66]/90 hover:to-emerald-500/90 text-[#0D0D0D] font-semibold shadow-lg shadow-[#00FF66]/20"
               >
                 <Mic className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Registrar por Voz</span>
@@ -485,115 +446,115 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Navigation Menu */}
         <nav className="mb-8">
-          <div className="bg-gray-900 rounded-2xl shadow-lg p-4">
+          <div className="bg-[#1A1A1A] rounded-2xl shadow-2xl p-4 border border-[#00FF66]/10">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('dashboard')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'dashboard' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <LayoutDashboard className={`w-5 h-5 ${activeSection === 'dashboard' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Dashboard</span>
+                <LayoutDashboard className={`w-5 h-5 ${activeSection === 'dashboard' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'dashboard' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Dashboard</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('contas')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'contas' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <Wallet className={`w-5 h-5 ${activeSection === 'contas' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Contas</span>
+                <Wallet className={`w-5 h-5 ${activeSection === 'contas' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'contas' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Contas</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('transacoes')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'transacoes' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <Receipt className={`w-5 h-5 ${activeSection === 'transacoes' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Transações</span>
+                <Receipt className={`w-5 h-5 ${activeSection === 'transacoes' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'transacoes' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Transações</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('planilhas')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'planilhas' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <FileText className={`w-5 h-5 ${activeSection === 'planilhas' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Planilhas</span>
+                <FileText className={`w-5 h-5 ${activeSection === 'planilhas' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'planilhas' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Planilhas</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('relatorios')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'relatorios' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <FileText className={`w-5 h-5 ${activeSection === 'relatorios' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Relatórios</span>
+                <FileText className={`w-5 h-5 ${activeSection === 'relatorios' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'relatorios' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Relatórios</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('metas')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'metas' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <Target className={`w-5 h-5 ${activeSection === 'metas' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Metas</span>
+                <Target className={`w-5 h-5 ${activeSection === 'metas' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'metas' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Metas</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('sugestoes')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'sugestoes' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <Lightbulb className={`w-5 h-5 ${activeSection === 'sugestoes' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Sugestões</span>
+                <Lightbulb className={`w-5 h-5 ${activeSection === 'sugestoes' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'sugestoes' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Sugestões</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('empresas')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'empresas' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <Building2 className={`w-5 h-5 ${activeSection === 'empresas' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Empresas</span>
+                <Building2 className={`w-5 h-5 ${activeSection === 'empresas' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'empresas' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Empresas</span>
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => handleMenuClick('config')}
-                className={`flex flex-col items-center gap-2 h-auto py-3 ${
+                className={`flex flex-col items-center gap-2 h-auto py-3 transition-all duration-300 ${
                   activeSection === 'config' 
-                    ? 'bg-gradient-to-br from-blue-950 to-indigo-950 border border-blue-800' 
-                    : 'hover:bg-gray-800'
+                    ? 'bg-[#00FF66]/10 border border-[#00FF66] shadow-lg shadow-[#00FF66]/20' 
+                    : 'hover:bg-[#00FF66]/5 border border-transparent'
                 }`}
               >
-                <Settings className={`w-5 h-5 ${activeSection === 'config' ? 'text-blue-400' : 'text-gray-400'}`} />
-                <span className="text-xs font-medium text-white">Config</span>
+                <Settings className={`w-5 h-5 ${activeSection === 'config' ? 'text-[#00FF66]' : 'text-gray-400'}`} />
+                <span className={`text-xs font-medium ${activeSection === 'config' ? 'text-[#00FF66]' : 'text-gray-400'}`}>Config</span>
               </Button>
             </div>
           </div>
