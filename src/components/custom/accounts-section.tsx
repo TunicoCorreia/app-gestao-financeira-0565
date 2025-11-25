@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Wallet, Plus, CreditCard, PiggyBank, TrendingUp } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Wallet, Plus, CreditCard, PiggyBank, TrendingUp, Edit, Trash2 } from 'lucide-react';
 import { supabase, type Account } from '@/lib/supabase';
 
 export function AccountsSection() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     type: 'checking' as Account['type'],
@@ -42,18 +44,59 @@ export function AccountsSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from('accounts')
-        .insert([formData]);
+      if (editingAccount) {
+        // Atualizar conta existente
+        const { error } = await supabase
+          .from('accounts')
+          .update(formData)
+          .eq('id', editingAccount.id);
 
-      if (error) throw error;
-      
+        if (error) throw error;
+        setEditingAccount(null);
+      } else {
+        // Criar nova conta
+        const { error } = await supabase
+          .from('accounts')
+          .insert([formData]);
+
+        if (error) throw error;
+        setShowForm(false);
+      }
+
       setFormData({ name: '', type: 'checking', balance: 0 });
-      setShowForm(false);
       loadAccounts();
     } catch (error) {
-      console.error('Erro ao criar conta:', error);
+      console.error('Erro ao salvar conta:', error);
     }
+  };
+
+  const handleEdit = (account: Account) => {
+    setEditingAccount(account);
+    setFormData({
+      name: account.name,
+      type: account.type,
+      balance: account.balance,
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('accounts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      loadAccounts();
+    } catch (error) {
+      console.error('Erro ao deletar conta:', error);
+    }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingAccount(null);
+    setFormData({ name: '', type: 'checking', balance: 0 });
   };
 
   const getAccountIcon = (type: string) => {
@@ -95,7 +138,7 @@ export function AccountsSection() {
           <p className="text-gray-400">Gerencie suas contas bancárias</p>
         </div>
         <Button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
           className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -103,10 +146,13 @@ export function AccountsSection() {
         </Button>
       </div>
 
-      {showForm && (
+      {/* Formulário para nova conta ou edição */}
+      {(showForm || editingAccount) && (
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
-            <CardTitle className="text-white">Adicionar Nova Conta</CardTitle>
+            <CardTitle className="text-white">
+              {editingAccount ? 'Editar Conta' : 'Adicionar Nova Conta'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,17 +190,20 @@ export function AccountsSection() {
                   id="balance"
                   type="number"
                   step="0.01"
-                  value={formData.balance}
-                  onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) })}
+                  value={formData.balance || ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    setFormData({ ...formData, balance: isNaN(value) ? 0 : value });
+                  }}
                   placeholder="0.00"
                   className="bg-gray-900 border-gray-700 text-white"
                 />
               </div>
               <div className="flex gap-2">
                 <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
-                  Salvar
+                  {editingAccount ? 'Atualizar' : 'Salvar'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancelar
                 </Button>
               </div>
@@ -179,6 +228,24 @@ export function AccountsSection() {
                     </CardDescription>
                   </div>
                 </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEdit(account)}
+                    className="h-8 w-8 p-0 hover:bg-blue-500/10 hover:text-blue-400"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDelete(account.id)}
+                    className="h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-400"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -190,7 +257,7 @@ export function AccountsSection() {
         ))}
       </div>
 
-      {accounts.length === 0 && !showForm && (
+      {accounts.length === 0 && !showForm && !editingAccount && (
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="py-12 text-center">
             <Wallet className="w-16 h-16 text-gray-600 mx-auto mb-4" />

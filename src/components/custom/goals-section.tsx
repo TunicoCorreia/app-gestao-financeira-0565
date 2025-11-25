@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Target, Plus, Calendar } from 'lucide-react';
+import { Target, Plus, Calendar, Edit, Trash2 } from 'lucide-react';
 import { supabase, type Goal } from '@/lib/supabase';
 
 export function GoalsSection() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     target_amount: 0,
@@ -43,18 +44,60 @@ export function GoalsSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from('goals')
-        .insert([formData]);
+      if (editingGoal) {
+        // Atualizar meta existente
+        const { error } = await supabase
+          .from('goals')
+          .update(formData)
+          .eq('id', editingGoal.id);
 
-      if (error) throw error;
-      
+        if (error) throw error;
+        setEditingGoal(null);
+      } else {
+        // Criar nova meta
+        const { error } = await supabase
+          .from('goals')
+          .insert([formData]);
+
+        if (error) throw error;
+        setShowForm(false);
+      }
+
       setFormData({ name: '', target_amount: 0, current_amount: 0, deadline: '' });
-      setShowForm(false);
       loadGoals();
     } catch (error) {
-      console.error('Erro ao criar meta:', error);
+      console.error('Erro ao salvar meta:', error);
     }
+  };
+
+  const handleEdit = (goal: Goal) => {
+    setEditingGoal(goal);
+    setFormData({
+      name: goal.name,
+      target_amount: goal.target_amount,
+      current_amount: goal.current_amount,
+      deadline: goal.deadline || '',
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      loadGoals();
+    } catch (error) {
+      console.error('Erro ao deletar meta:', error);
+    }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingGoal(null);
+    setFormData({ name: '', target_amount: 0, current_amount: 0, deadline: '' });
   };
 
   const formatCurrency = (value: number) => {
@@ -84,7 +127,7 @@ export function GoalsSection() {
           <p className="text-gray-400">Acompanhe seus objetivos financeiros</p>
         </div>
         <Button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
           className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -92,10 +135,13 @@ export function GoalsSection() {
         </Button>
       </div>
 
-      {showForm && (
+      {/* Formulário para nova meta ou edição */}
+      {(showForm || editingGoal) && (
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
-            <CardTitle className="text-white">Adicionar Nova Meta</CardTitle>
+            <CardTitle className="text-white">
+              {editingGoal ? 'Editar Meta' : 'Adicionar Nova Meta'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,8 +163,11 @@ export function GoalsSection() {
                     id="target"
                     type="number"
                     step="0.01"
-                    value={formData.target_amount}
-                    onChange={(e) => setFormData({ ...formData, target_amount: parseFloat(e.target.value) })}
+                    value={formData.target_amount || ''}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      setFormData({ ...formData, target_amount: isNaN(value) ? 0 : value });
+                    }}
                     placeholder="0.00"
                     required
                     className="bg-gray-900 border-gray-700 text-white"
@@ -130,8 +179,11 @@ export function GoalsSection() {
                     id="current"
                     type="number"
                     step="0.01"
-                    value={formData.current_amount}
-                    onChange={(e) => setFormData({ ...formData, current_amount: parseFloat(e.target.value) })}
+                    value={formData.current_amount || ''}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      setFormData({ ...formData, current_amount: isNaN(value) ? 0 : value });
+                    }}
                     placeholder="0.00"
                     className="bg-gray-900 border-gray-700 text-white"
                   />
@@ -149,9 +201,9 @@ export function GoalsSection() {
               </div>
               <div className="flex gap-2">
                 <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-                  Salvar
+                  {editingGoal ? 'Atualizar' : 'Salvar'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancelar
                 </Button>
               </div>
@@ -178,6 +230,24 @@ export function GoalsSection() {
                         {goal.deadline ? formatDate(goal.deadline) : 'Sem prazo'}
                       </CardDescription>
                     </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEdit(goal)}
+                      className="h-8 w-8 p-0 hover:bg-blue-500/10 hover:text-blue-400"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(goal.id)}
+                      className="h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -209,7 +279,7 @@ export function GoalsSection() {
         })}
       </div>
 
-      {goals.length === 0 && !showForm && (
+      {goals.length === 0 && !showForm && !editingGoal && (
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="py-12 text-center">
             <Target className="w-16 h-16 text-gray-600 mx-auto mb-4" />
